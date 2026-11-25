@@ -127,7 +127,7 @@ Nous avons vérifié avec `curl` :
 - `/user/1` renvoie `{"name":"Paul","age":23}` (200) ;
 - `/user/99` renvoie une erreur 404 ;
 - `/user/abc` et `/user/1x` renvoient une erreur 400 ;
-- `POST /version` renvoie une erreur 501.
+- `DELETE /version` renvoie une erreur 405.
 
 
 #### Opération POST : créer un utilisateur
@@ -181,6 +181,10 @@ Nous avons vérifié avec `curl` que `GET /user` renvoie `[{"name":"Paul","age":
 Nous avons ajouté une méthode virtuelle `put()` à `AbstractService`. Comme les autres, elle renvoie une erreur 405 par défaut. `UserService` la redéfinit, et `queryService()` a un nouveau cas `put`.
 
 Dans `UserService::put()`, on renvoie une erreur 405 sans identifiant et une erreur 404 si l'identifiant est inconnu. Tous les champs sont obligatoires : le corps doit contenir exactement `name` et `age`, valides, sinon on renvoie une erreur 400. L'utilisateur est alors remplacé en entier et la réponse est un 204. Pour un identifiant inconnu, nous avons choisi de renvoyer 404 plutôt que de créer l'utilisateur.
+
+#### Résultat des tests
+
+Le script `./test.sh` passe 30 tests sur 31. Le test qui échoue est `PUT /version`, qui attend un 501 et reçoit un 400. Ce test a été écrit pour un serveur sans PUT, où la méthode tombait dans le cas par défaut du `switch`. Depuis que PUT est implanté (Q14), `queryService()` analyse le corps de la requête avant d'appeler le service. Le script envoie une requête sans corps : le JSON est invalide et l'erreur 400 est levée avant que le service ne réponde. Ce n'est donc pas un défaut de l'implantation, mais une conséquence du bonus. Sans le bonus, le test passerait.
 
 **Quelle différence avec PATCH ?** 
 PATCH modifie seulement les champs envoyés et garde les autres. PUT remplace la ressource entière : un champ absent est donc une erreur.
